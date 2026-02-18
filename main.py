@@ -1,6 +1,10 @@
 import cv2  # Open Source Computer Vision Library (uv pip install opencv-python)
 import mediapipe as mp  # MediaPipe model
 from posture_analyzer import analyze_shoulders
+from alerter import posture_alerter
+
+# set up alerter for bad posture
+alerter = posture_alerter()
 
 # setup MediaPipe Pose (loads model once and create a pose object to call on every frame)
 mp_pose = mp.solutions.pose
@@ -50,6 +54,9 @@ while True:  # runs forever until q
         # posture analysis based on landmarks coords
         result = analyze_shoulders(left_sh_px, right_sh_px, h)
 
+        # update alerter
+        alerter.update(result['bad_posture'])
+
         # draw landmarks and posture analysis results
         color = (0, 0, 255) if result['bad_posture'] else (0, 255, 0)  # red = bad, green = good
         # draw circles on the three points
@@ -62,7 +69,7 @@ while True:  # runs forever until q
         tilt_text = f"Tilt: {result['tilt']:.3f}"
         cv2.putText(frame, tilt_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
         if result['bad_posture']:
-            cv2.putText(frame, "! Fix your shoulders !", (10, 65),
+            cv2.putText(frame, "FIX YOUR SHOULDERS", (10, 65),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
     # display the frame in a window
