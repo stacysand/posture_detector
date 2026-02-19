@@ -1,6 +1,6 @@
 import cv2  # Open Source Computer Vision Library (uv pip install opencv-python)
 import mediapipe as mp  # MediaPipe model
-from posture_analyzer import analyze_shoulders
+from posture_analyzer import analyze_shoulders, analyze_head
 from alerter import posture_alerter
 
 # set up alerter for bad posture
@@ -32,7 +32,8 @@ while True:  # runs forever until q
     if not success:
         print('Error: could not read frame')
         break
-    
+    frame = cv2.flip(frame, 1)  # mirror flip
+
     # lauch MediaPipe
     h, w = frame.shape[:2]  # frame height and width in pixels
     # convert BGR -> RGB (MediaPipe requires RGB)
@@ -52,25 +53,39 @@ while True:  # runs forever until q
         right_sh_px = get_px(RIGHT_SHOULDER)
         
         # posture analysis based on landmarks coords
-        result = analyze_shoulders(left_sh_px, right_sh_px, h)
+        shoulder_result = analyze_shoulders(left_sh_px, right_sh_px, h)
+        head_result = analyze_head(nose_px, left_sh_px, right_sh_px, h)
 
         # update alerter
-        alerter.update(result['bad_posture'])
+        any_bad = shoulder_result['bad_posture'] or head_result['bad_posture']
+        alerter.update(any_bad)
 
         # draw landmarks and posture analysis results
-        color = (0, 0, 255) if result['bad_posture'] else (0, 255, 0)  # red = bad, green = good
-        # draw circles on the three points
-        cv2.circle(frame, nose_px, 8, (0, 255, 255), -1)  # yellow = nose
-        cv2.circle(frame, left_sh_px,  8, color, -1)
-        cv2.circle(frame, right_sh_px, 8, color, -1)
-        cv2.line(frame, left_sh_px, right_sh_px, color, 2)
+        sh_color   = (0, 0, 255) if shoulder_result['bad_posture'] else (0, 255, 0)
+        head_color = (0, 0, 255) if head_result['bad_posture']     else (0, 255, 0)
+        # draw shoulder landmarks and line
+        cv2.circle(frame, left_sh_px,  8, sh_color, -1)
+        cv2.circle(frame, right_sh_px, 8, sh_color, -1)
+        cv2.line(frame, left_sh_px, right_sh_px, sh_color, 2)
 
-        # show tilt value and warning on screen
-        tilt_text = f"Tilt: {result['tilt']:.3f}"
-        cv2.putText(frame, tilt_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
-        if result['bad_posture']:
-            cv2.putText(frame, "FIX YOUR SHOULDERS", (10, 65),
+        # draw vertical line: nose down to shoulder midpoint
+        mid_px = head_result['shoulder_mid_px']
+        cv2.circle(frame, nose_px, 8, head_color, -1)
+        cv2.line(frame, nose_px, mid_px, head_color, 2)
+        cv2.circle(frame, mid_px, 6, head_color, 1)  # hollow circle at midpoint
+
+        # info text (on-screen)
+        cv2.putText(frame, f"Shoulder tilt: {shoulder_result['tilt']:.3f}",
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, sh_color, 2)
+        cv2.putText(frame, f"Head distance: {head_result['distance']:.3f}",
+                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, head_color, 2)
+        # warnings (on-screen)
+        if shoulder_result['bad_posture']:
+            cv2.putText(frame, "Fix your shoulders", (10, 100),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            if head_result['bad_posture']:
+                cv2.putText(frame, "Lift your head", (10, 130),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
     # display the frame in a window
     cv2.imshow('Posture Monitor', frame)  # prepare title + img to display (new frame each itteration)
