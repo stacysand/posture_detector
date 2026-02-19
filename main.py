@@ -15,6 +15,7 @@ pose = mp_pose.Pose(min_detection_confidence=0.5,  # model certanty before repor
 NOSE = mp_pose.PoseLandmark.NOSE
 LEFT_SHOULDER = mp_pose.PoseLandmark.LEFT_SHOULDER
 RIGHT_SHOULDER = mp_pose.PoseLandmark.RIGHT_SHOULDER
+# FACE_DOTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # open camera
 camera = cv2.VideoCapture(0)  # 0 means default camera (try 1,2,etc)
@@ -72,20 +73,27 @@ while True:  # runs forever until q
         mid_px = head_result['shoulder_mid_px']
         cv2.circle(frame, nose_px, 8, head_color, -1)
         cv2.line(frame, nose_px, mid_px, head_color, 2)
-        cv2.circle(frame, mid_px, 6, head_color, 1)  # hollow circle at midpoint
+        cv2.circle(frame, mid_px, 8, head_color, -1)  # hollow circle at midpoint
+
+        #  draw face landmarks 1-10
+        # face_pts = [get_px(i) for i in FACE_DOTS]
+        # cv2.circle(frame, face_pts[8], 8, (255, 0, 0), -1)
+        # cv2.circle(frame, face_pts[9], 8, (255, 0, 0), -1)
+        # cv2.line(frame, face_pts[8], face_pts[9], (255, 0, 0), 2)  # mouth: 9→10
 
         # info text (on-screen)
+        # cv2.putText(frame, "text", (x, y), font, font_scale, color, thickness)
         cv2.putText(frame, f"Shoulder tilt: {shoulder_result['tilt']:.3f}",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, sh_color, 2)
+                    (100, 300), cv2.FONT_HERSHEY_SIMPLEX, 1.5, sh_color, 3)
         cv2.putText(frame, f"Head distance: {head_result['distance']:.3f}",
-                    (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, head_color, 2)
+                    (100, 350), cv2.FONT_HERSHEY_SIMPLEX, 1.5, head_color, 3)
         # warnings (on-screen)
         if shoulder_result['bad_posture']:
-            cv2.putText(frame, "Fix your shoulders", (10, 100),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            if head_result['bad_posture']:
-                cv2.putText(frame, "Lift your head", (10, 130),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            cv2.putText(frame, "Fix your shoulders", (100, 400),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
+        if head_result['bad_posture']:
+            cv2.putText(frame, "Lift your head", (100, 450),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
     # display the frame in a window
     cv2.imshow('Posture Monitor', frame)  # prepare title + img to display (new frame each itteration)

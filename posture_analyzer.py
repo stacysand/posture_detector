@@ -1,4 +1,4 @@
-SHOULDER_TILT_THRESHOLD = 0.028  # normalized by frame height; tune this value
+SHOULDER_TILT_THRESHOLD = 0.03  # normalized by frame height; tune this value
 HEAD_DISTANCE_THRESHOLD  = 0.27   # normalized nose-to-shoulder distance; tune this
 
 def analyze_shoulders(left_shoulder_px, right_shoulder_px, frame_height):
