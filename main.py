@@ -8,8 +8,10 @@ alerter = posture_alerter()
 
 # setup MediaPipe Pose (loads model once and create a pose object to call on every frame)
 mp_pose = mp.solutions.pose
-pose = mp_pose.Pose(min_detection_confidence=0.5,  # model certanty before reporting a detection (0.5 - sensible default)
-                    min_tracking_confidence=0.5)  # model certanty in continuing to track the detection (0.5 - sensible default)
+pose = mp_pose.Pose(
+    min_detection_confidence=0.5,  # model certanty before reporting a detection (0.5 - sensible default)
+    min_tracking_confidence=0.5,  # model certanty in continuing to track the detection (0.5 - sensible default)
+    model_complexity=2)  # 0=lite, 1=default, 2=heavy (most accurate)
 
 # Landmark indices (named indices into MediaPipe's 33-keypoint body map)
 NOSE = mp_pose.PoseLandmark.NOSE

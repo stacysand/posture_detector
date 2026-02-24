@@ -2,8 +2,8 @@
 import time
 import subprocess
 
-PERSIST_SECONDS  = 5   # bad posture must last this long before alerting
-COOLDOWN_SECONDS = 2  # minimum gap between two alerts
+PERSIST_SECONDS  = 7   # bad posture must last this long before alerting
+COOLDOWN_SECONDS = 5  # minimum gap between two alerts
 
 
 class posture_alerter:
